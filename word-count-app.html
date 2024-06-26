@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Occurrence Counter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Open Sans', Arial, sans-serif;
+        }
+        .gradient-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom right,
+                #243959 0%,
+                #243959 60%,
+                #467ab3 100%
+            );
+            z-index: -1;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .result-table {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(to bottom right, #243959, #467ab3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="gradient-background"></div>
+    <div class="content bg-white rounded-xl shadow-2xl p-8 w-full max-w-3xl">
+        <h1 class="text-4xl font-bold mb-6 text-center gradient-text">Word Occurrence Counter</h1>
+        <div class="mb-6">
+            <textarea id="input-text" rows="6" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out" placeholder="Paste your text here..."></textarea>
+        </div>
+        <div class="flex justify-center mb-8">
+            <button id="count-button" class="bg-[#1565C0] text-white px-6 py-3 rounded-lg hover:bg-[#1976D2] focus:outline-none focus:ring-2 focus:ring-[#1565C0] focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105">
+                Count Words
+            </button>
+        </div>
+        <div id="result" class="hidden fade-in">
+            <h2 class="text-2xl font-semibold mb-4 gradient-text">Results:</h2>
+            <div class="result-table">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-200 p-3 text-left font-semibold">Word</th>
+                            <th class="border border-gray-200 p-3 text-left font-semibold">Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function countWords(text) {
+            const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+            const wordCount = {};
+
+            for (const word of words) {
+                wordCount[word] = (wordCount[word] || 0) + 1;
+            }
+
+            return Object.entries(wordCount);
+        }
+
+        function heapSort(arr) {
+            function heapify(arr, n, i) {
+                let largest = i;
+                const left = 2 * i + 1;
+                const right = 2 * i + 2;
+
+                if (left < n && arr[left][1] > arr[largest][1]) {
+                    largest = left;
+                }
+
+                if (right < n && arr[right][1] > arr[largest][1]) {
+                    largest = right;
+                }
+
+                if (largest !== i) {
+                    [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                    heapify(arr, n, largest);
+                }
+            }
+
+            const n = arr.length;
+
+            for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+                heapify(arr, n, i);
+            }
+
+            for (let i = n - 1; i > 0; i--) {
+                [arr[0], arr[i]] = [arr[i], arr[0]];
+                heapify(arr, i, 0);
+            }
+
+            return arr.reverse(); // Reverse for descending order
+        }
+
+        document.getElementById('count-button').addEventListener('click', () => {
+            const inputText = document.getElementById('input-text').value;
+            const wordCounts = countWords(inputText);
+            const sortedWordCounts = heapSort(wordCounts);
+            const resultBody = document.getElementById('result-body');
+            const resultDiv = document.getElementById('result');
+
+            resultBody.innerHTML = '';
+            for (const [word, count] of sortedWordCounts) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-200 p-3">${word}</td>
+                    <td class="border border-gray-200 p-3">${count}</td>
+                `;
+                resultBody.appendChild(row);
+            }
+
+            resultDiv.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
